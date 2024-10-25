@@ -61,6 +61,13 @@ class DateRangePicker {
                 opacity: 0;
                 transition: opacity 0.3s ease;
             }
+
+            .date-select-picker, date-select-picker:focus-visible{
+                outline: none;
+                padding: 2px 0px;
+                border: 1px solid #b1b1b1;
+                border-radius: 5px;
+            }
     
             .date-range-header {
                 display: flex;
@@ -176,8 +183,20 @@ class DateRangePicker {
             <div class="date-range-header">
                 <button id="prevMonth" class="prevMonth">&#11164</button>
                 <div id="dateHeader">
-                    <span id="leftMonth">${this.getMonthName(this.previousMonth)} ${this.previousMonthYear}</span> - 
-                    <span id="rightMonth">${this.getMonthName(this.currentMonth)} ${this.currentYear}</span>
+                <!-- Month dropdowns for left and right calendars -->
+                <select id="leftMonthSelect" class="month-select date-select-picker">
+                    ${this.generateMonthOptions(this.previousMonth)}
+                </select>
+                <select id="leftYearSelect" class="year-select date-select-picker">
+                    ${this.generateYearOptions(this.previousMonthYear)}
+                </select>
+                -
+                <select id="rightMonthSelect" class="month-select date-select-picker">
+                    ${this.generateMonthOptions(this.currentMonth)}
+                </select>
+                <select id="rightYearSelect" class="year-select date-select-picker">
+                    ${this.generateYearOptions(this.currentYear)}
+                </select>
                 </div>
                 <button id="nextMonth" class="nextMonth">&#11166;</button>
             </div>
@@ -195,9 +214,10 @@ class DateRangePicker {
         </div>
     `;
 
+
+
         // Find the input element and append the picker to the same container
         const inputParent = this.dateInput.parentElement;
-        console.log(inputParent)
         inputParent.insertAdjacentHTML('beforeend', datePickerHTML);
 
         // Render both calendars and attach event handlers
@@ -216,17 +236,78 @@ class DateRangePicker {
         this.dateInput.addEventListener('click', () => this.openDatePicker()); // Open date picker on input click
     };
 
+    // JavaScript to generate options dynamically
+    generateMonthOptions(selectedMonth) {
+        const months = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+        return months.map((month, index) =>
+            `<option value="${index}" ${index === selectedMonth ? 'selected' : ''}>${month}</option>`
+        ).join('');
+    }
+
+    generateYearOptions(selectedYear) {
+        const currentYear = new Date().getFullYear();
+        const minDate = this.formatDate(this.options.minDate);
+        const [day, month, year] = minDate.split('-').map(Number); // Split date string and convert to numbers
+        const startYear = year; // Starting year can be adjusted based on requirements
+        const endYear = currentYear;
+        let options = '';
+        for (let year = startYear; year <= endYear; year++) {
+            options += `<option value="${year}" ${year === selectedYear ? 'selected' : ''}>${year}</option>`;
+        }
+        return options;
+    }
+
     /**
-     * Render the left (previous month) and right (current month) calendars.
+     * Render the left (previous month) and right (current month) calendars with dropdowns.
      */
     renderCalendars() {
-        this.renderCalendar('leftCalendar', this.previousMonthYear, this.previousMonth);  // Render left calendar
-        this.renderCalendar('rightCalendar', this.currentYear, this.currentMonth); // Render right calendar
+        // Render left and right calendars based on selected months and years
+        this.renderCalendar('leftCalendar', this.previousMonthYear, this.previousMonth);
+        this.renderCalendar('rightCalendar', this.currentYear, this.currentMonth);
 
-        // Update header with both month names and years
-        _getEleById('leftMonth').textContent = `${this.getMonthName(this.previousMonth)} ${this.previousMonthYear}`; // Update left month display
-        _getEleById('rightMonth').textContent = `${this.getMonthName(this.currentMonth)} ${this.currentYear}`; // Update right month display
-    };
+        // Update the dropdowns for left month and year
+        const leftMonthSelect = _getEleById('leftMonthSelect');
+        leftMonthSelect.innerHTML = this.generateMonthOptions(this.previousMonth);
+        leftMonthSelect.value = this.previousMonth;
+
+        const leftYearSelect = _getEleById('leftYearSelect');
+        leftYearSelect.innerHTML = this.generateYearOptions(this.previousMonthYear);
+        leftYearSelect.value = this.previousMonthYear;
+
+        // Update the dropdowns for right month and year
+        const rightMonthSelect = _getEleById('rightMonthSelect');
+        rightMonthSelect.innerHTML = this.generateMonthOptions(this.currentMonth);
+        rightMonthSelect.value = this.currentMonth;
+
+        const rightYearSelect = _getEleById('rightYearSelect');
+        rightYearSelect.innerHTML = this.generateYearOptions(this.currentYear);
+        rightYearSelect.value = this.currentYear;
+
+        // Add event listeners to dropdowns to update calendar on change
+        leftMonthSelect.addEventListener('change', (e) => {
+            this.previousMonth = parseInt(e.target.value, 10);
+            this.renderCalendars(); // Re-render calendars with updated month
+        });
+
+        leftYearSelect.addEventListener('change', (e) => {
+            this.previousMonthYear = parseInt(e.target.value, 10);
+            this.renderCalendars(); // Re-render calendars with updated year
+        });
+
+        rightMonthSelect.addEventListener('change', (e) => {
+            this.currentMonth = parseInt(e.target.value, 10);
+            this.renderCalendars(); // Re-render calendars with updated month
+        });
+
+        rightYearSelect.addEventListener('change', (e) => {
+            this.currentYear = parseInt(e.target.value, 10);
+            this.renderCalendars(); // Re-render calendars with updated year
+        });
+    }
+
 
     /**
      * @param {Date} date - The date object to format.
@@ -569,29 +650,16 @@ class DateRangePicker {
     };
 }
 
+
 // Initialize the date range picker
 const datePickerOptions = {
     dateFormatType: 'DD-MM-YYYY', // Specifies the format in which the date should be displayed.
     minDate: new Date(2018, 0, 1), // Sets the minimum selectable date (January 1, 2018, in this case).
     maxDate: new Date(), // Sets the maximum selectable date to today.
-    maxDays: '30', // Restricts the maximum number of days that can be selected in the range (changed to a number).
+    maxDays: '31', // Restricts the maximum number of days that can be selected in the range (changed to a number).
     dateInputId: 'dateRangeInput', // The ID of the input field where the selected date range will be displayed.
     dateFromId: 'dateFrom', // The ID for the start date input (Optional) if you want put value in dateFrom.
     dateToId: 'dateTo', // The ID for the end date input (Optional) if you want put value in dateTo.
 };
 
 const datepicker = new DateRangePicker(datePickerOptions);
-
-
-// Initialize the date range picker
-    const datePickerOptions = {
-        dateFormatType: 'DD-MM-YYYY', // Specifies the format in which the date should be displayed.
-        minDate: new Date(2018, 0, 1), // Sets the minimum selectable date (January 1, 2018, in this case).
-        maxDate: new Date(), // Sets the maximum selectable date to today.
-        maxDays: '30', // Restricts the maximum number of days that can be selected in the range (changed to a number).
-        dateInputId: 'dateRangeInput', // The ID of the input field where the selected date range will be displayed.
-        dateFromId: 'dateFrom', // The ID for the start date input (Optional) if you want put value in dateFrom.
-        dateToId: 'dateTo', // The ID for the end date input (Optional) if you want put value in dateTo.
-    };
-
-    const datepicker = new DateRangePicker(datePickerOptions);
