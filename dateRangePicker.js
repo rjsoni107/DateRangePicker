@@ -42,7 +42,7 @@ class DateRangePicker {
             .date-range-picker-container {
                 font-family: sans-serif;
                 position: absolute;
-                width: 580px;
+                width: 600px;
                 background-color: white;
                 border: 1px solid #ccc;
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -170,36 +170,39 @@ class DateRangePicker {
         styleSheet.innerText = styles;
         document.head.appendChild(styleSheet);
 
-        // HTML for the date range picker
+        // Create the date range picker HTML
         const datePickerHTML = `
-            <div id="dateRangePicker" class="date-range-picker-container">
-                <div class="date-range-header">
-                    <button id="prevMonth" class="prevMonth">◀</button>
-                    <div id="dateHeader">
-                        <span id="leftMonth">${this.getMonthName(this.previousMonth)} ${this.previousMonthYear}</span> - 
-                        <span id="rightMonth">${this.getMonthName(this.currentMonth)} ${this.currentYear}</span>
-                    </div>
-                    <button id="nextMonth" class="nextMonth">▶</button>
+        <div id="dateRangePicker" class="date-range-picker-container">
+            <div class="date-range-header">
+                <button id="prevMonth" class="prevMonth">&#11164</button>
+                <div id="dateHeader">
+                    <span id="leftMonth">${this.getMonthName(this.previousMonth)} ${this.previousMonthYear}</span> - 
+                    <span id="rightMonth">${this.getMonthName(this.currentMonth)} ${this.currentYear}</span>
                 </div>
-                <div class="date-range-body">
-                    <div class="calendar" id="leftCalendar"></div>
-                    <div class="calendar" id="rightCalendar"></div>
-                </div>
-                <div class="date-range-footer">
-                    <span class="errorMsg" id="errorMsg"></span>
-                    <div>
-                        <button id="applyDateRange">Apply</button>
-                        <button id="cancelDateRange">Cancel</button>
-                    </div>
+                <button id="nextMonth" class="nextMonth">&#11166;</button>
+            </div>
+            <div class="date-range-body">
+                <div class="calendar" id="leftCalendar"></div>
+                <div class="calendar" id="rightCalendar"></div>
+            </div>
+            <div class="date-range-footer">
+                <span class="errorMsg" id="errorMsg"></span>
+                <div>
+                    <button id="applyDateRange">Apply</button>
+                    <button id="cancelDateRange">Cancel</button>
                 </div>
             </div>
-        `;
+        </div>
+    `;
 
-        document.body.insertAdjacentHTML('beforeend', datePickerHTML); // Append date picker HTML to the body
+        // Find the input element and append the picker to the same container
+        const inputParent = this.dateInput.parentElement;
+        console.log(inputParent)
+        inputParent.insertAdjacentHTML('beforeend', datePickerHTML);
 
         // Render both calendars and attach event handlers
-        this.renderCalendars(); // Render calendars
-        this.attachEventHandlers(); // Attach event handlers for buttons and input field
+        this.renderCalendars();
+        this.attachEventHandlers();
     }
 
     /**
@@ -565,6 +568,19 @@ class DateRangePicker {
         this.changeMonth(0);
     };
 }
+
+// Initialize the date range picker
+const datePickerOptions = {
+    dateFormatType: 'DD-MM-YYYY', // Specifies the format in which the date should be displayed.
+    minDate: new Date(2018, 0, 1), // Sets the minimum selectable date (January 1, 2018, in this case).
+    maxDate: new Date(), // Sets the maximum selectable date to today.
+    maxDays: '30', // Restricts the maximum number of days that can be selected in the range (changed to a number).
+    dateInputId: 'dateRangeInput', // The ID of the input field where the selected date range will be displayed.
+    dateFromId: 'dateFrom', // The ID for the start date input (Optional) if you want put value in dateFrom.
+    dateToId: 'dateTo', // The ID for the end date input (Optional) if you want put value in dateTo.
+};
+
+const datepicker = new DateRangePicker(datePickerOptions);
 
 
 // Initialize the date range picker
