@@ -170,6 +170,25 @@ class DateRangePicker {
                 pointer-events: none;
                 cursor: not-allowed;
             }
+
+            .date-input-wrapper {
+                position: relative;
+                width: 100%;
+            }
+
+            .date-input-wrapper input {
+                padding-right: 40px; /* icon ke liye space */
+            }
+
+            .calendar-icon {
+                position: absolute;
+                right: 12px;
+                top: 70%;
+                transform: translateY(-50%);
+                color: #404243;
+                cursor: pointer;
+                font-size: 16px;
+            }
         `;
 
         // Append dynamic styles to the document
@@ -608,7 +627,7 @@ class DateRangePicker {
         }
 
         // Update the input fields with the selected dates
-        dateInput && (dateInput.value = `${this.dateFormatType(startDate)} - ${this.dateFormatType(endDate)}`);
+        dateInput && (dateInput.value = `${this.dateFormatType(startDate)}   -   ${this.dateFormatType(endDate)}`);
         dateFrom && (dateFrom.value = this.dateFormatType(startDate));
         dateTo && (dateTo.value = this.dateFormatType(endDate));
 
@@ -629,6 +648,30 @@ class DateRangePicker {
         }
     };
 
+    setPickerPosition() {
+        const inputRect = this.dateInput.getBoundingClientRect();
+        const picker = this.dateRangeContainer;
+
+        const pickerWidth = picker.offsetWidth;
+        const viewportWidth = window.innerWidth;
+
+        let left = inputRect.left + window.scrollX;
+
+        // 🔁 Horizontal auto adjust
+        if (inputRect.left + pickerWidth > viewportWidth) {
+            left = inputRect.right - pickerWidth + window.scrollX;
+        }
+
+        if (left < 0) {
+            left = 10;
+        }
+
+        // ✅ EXACT TUMHARA REQUIREMENT
+        const finalLeft = -(left / 2);
+
+        picker.style.left = `${finalLeft}px`;
+    }
+
     /**
      * Hides the date range picker.
      */
@@ -647,6 +690,9 @@ class DateRangePicker {
         this.dateRangeContainer.classList.add('show'); // Show date range picker
         this.renderCalendars();
         this.changeMonth(0);
+
+        // ✅ AUTO POSITION
+        this.setPickerPosition();
     };
 }
 
@@ -662,4 +708,4 @@ const datePickerOptions = {
     dateToId: 'dateTo', // The ID for the end date input (Optional) if you want put value in dateTo.
 };
 
-const datepicker = new DateRangePicker(datePickerOptions);
+// const datepicker = new DateRangePicker(datePickerOptions);
